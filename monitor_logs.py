@@ -1,5 +1,6 @@
 import csv # this module is used to work with the csv format of the log file
 from pprint import pprint # this module is used to print in a more readeable format the dictionary when needed
+from datetime import datetime, date
 
 
 # the first function parses the input csv file and creates a dictionary containing inner dictionaries grouped on the jobs IDs and the needed data for each one
@@ -32,15 +33,38 @@ def transform_csv_into_dictionary(input_file):
     return dict_grouped_by_pid # the function returns the complete dict with all inner dicts
 
 
+# this basic function serves for converting the timestamps which are extracted as strings into datetime objects
+def timestamps_from_string_to_time(timestamp):
+
+    datetime_object = datetime.strptime(timestamp, '%H:%M:%S')
+    time_object = datetime_object.time()
+
+    return time_object
+
+
+# this function handles the substraction between 2 datetime objects
+def substract_times(start_time, end_time):
+
+    arbitrary_date = date.today() # based on the research I did, it needs to be combined with an arbitrary date so the '-' operator can work
+    datetime1 = datetime.combine(arbitrary_date, start_time)
+    datetime2 = datetime.combine(arbitrary_date, end_time)
+
+    difference = datetime2 - datetime1
+
+    return difference
+
 
 # I am implementing the main work as functions and in main() I only call them
 def main():
 
     input_file = "logs.log"
 
-    parsed_results = transform_csv_into_dictionary(input_file)
+    dictionary_from_csv = transform_csv_into_dictionary(input_file)
 
-    pprint(parsed_results)
+    pprint(dictionary_from_csv)
+
+    # here I tested the new functions by using the hardcoded values of the first PID from the dictionary
+    print(substract_times(timestamps_from_string_to_time(dictionary_from_csv['37980'][' START']),timestamps_from_string_to_time(dictionary_from_csv['37980'][' END'])))
 
 
 if __name__ == "__main__":
