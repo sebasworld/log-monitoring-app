@@ -1,6 +1,6 @@
 import csv # this module is used to work with the csv format of the log file
 from pprint import pprint # this module is used to print in a more readeable format the dictionary when needed
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 
 # the first function parses the input csv file and creates a dictionary containing inner dictionaries grouped on the jobs IDs and the needed data for each one
@@ -52,6 +52,23 @@ def substract_times(start_time, end_time):
     difference = datetime2 - datetime1
 
     return difference
+
+
+# this function handles the comparison of the lasting time of a job which will be used for issueing a warning / error log message
+def alert_if_thresholds_passed(job_lasting_time):
+
+    five_minutes = timedelta(minutes=5) # I create here the time objects of 5 and 10 minutes used below for comparison
+    ten_minutes = timedelta(minutes=10)
+
+    is_over_five_minutes = job_lasting_time > five_minutes # the function receives as parameter the lasting time of a job, here I create the needed boolean variables based on each comparison
+    is_over_ten_minutes = job_lasting_time > ten_minutes
+
+    if is_over_five_minutes and not is_over_ten_minutes:
+        return 1 # I return 1 if a job lasted over 5 mins but below 10 - so I know when to issue a Warning
+    elif is_over_ten_minutes:
+        return 2 # I return 2 if a job lasted over 10 mins so that I can issue an Error
+
+    return 0 # If a job lasting time does not verify one of the above conditions (mainly being less than 5 minutes) then I return 0
 
 
 # I am implementing the main work as functions and in main() I only call them
