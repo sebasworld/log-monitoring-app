@@ -1,6 +1,6 @@
 import csv # this module is used to work with the csv format of the log file
 from pprint import pprint # this module is used to print in a more readeable format the dictionary when needed
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 
 
 # the first function parses the input csv file and creates a dictionary containing inner dictionaries grouped on the jobs IDs and the needed data for each one
@@ -45,13 +45,22 @@ def timestamps_from_string_to_time(timestamp):
 # this function handles the substraction between 2 datetime objects
 def substract_times(start_time, end_time):
 
-    arbitrary_date = date.today() # based on the research I did, a datetime object needs to be combined with an arbitrary date so the '-' operator can work when doing substractions
+    arbitrary_date = date(1970, 1, 1) # based on the research I did, a datetime object needs to be combined with an arbitrary date so the '-' operator can work when doing substractions
     datetime1 = datetime.combine(arbitrary_date, start_time)
     datetime2 = datetime.combine(arbitrary_date, end_time)
 
-    difference = datetime2 - datetime1
+    # after doing the tests, I had to remake this part to handle the scenario where tne END time of a Job is past midnight - and so the hour will become smaller than the START time 
 
-    return difference
+    diff_sameday = datetime2 - datetime1  # normal difference whe START and END times are both in the same day 
+
+    if diff_sameday.total_seconds() < 0: # check if the difference is negative (END time is earlier than START time)
+        if start_time > time(20, 0, 0) and end_time < time(4, 0, 0): # I am assuming here that this case has both timestamps in the interval: 20:00 - 04:00 - so thats a clear midnight crossing
+            datetime2_next_day = datetime2 + timedelta(days=1) # when it passes midnight, I calculate the difference using next day for END time
+            return datetime2_next_day - datetime1
+        else:
+            return diff_sameday # else I assume the timestamps are indeed broken and I return the negative value 
+    else:
+        return diff_sameday # if the difference is positive or zero, I return it directly - normal case
 
 
 # this function handles the comparison of the lasting time of a job which will be used for issueing a warning / error log message
